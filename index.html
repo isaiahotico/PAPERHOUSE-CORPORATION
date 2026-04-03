@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAPERHOUSE CORPORATION</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <!-- For custom styles -->
+    <style>
+        /* Basic styling for ad display */
+        #ad-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        #ad-frame {
+            width: 80%;
+            height: 80%;
+            border: none;
+        }
+        .countdown {
+            font-size: 2rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-300 font-sans">
+
+    <div id="ad-container">
+        <div id="ad-content">
+            <div id="ad-frame-wrapper" style="position: relative;">
+                <iframe id="ad-frame" src="" frameborder="0" allow="autoplay"></iframe>
+                <div id="ad-overlay" class="absolute inset-0 bg-transparent cursor-pointer" onclick="handleAdClick()"></div>
+            </div>
+            <div id="ad-timer" class="countdown">20</div>
+            <button id="close-ad-button" class="mt-4 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700" onclick="closeAd()">Close Ad</button>
+        </div>
+    </div>
+
+    <header class="bg-gray-800 py-4 px-6 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">PAPERHOUSE CORPORATION</h1>
+            <nav id="main-nav">
+                <ul class="flex space-x-4">
+                    <li><a href="#tasks" class="hover:text-white">Tasks</a></li>
+                    <li><a href="#referral" class="hover:text-white">Referral</a></li>
+                    <li><a href="#balance" class="hover:text-white">Balance</a></li>
+                    <li><a href="#settings" class="hover:text-white">Settings</a></li>
+                    <li><button id="logout-button" class="text-red-500 hover:text-red-400">Logout</button></li>
+                </ul>
+            </nav>            <button id="login-button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login with FaucetPay</button>
+        </div>
+    </header>
+
+    <main class="container mx-auto py-8 px-6">
+        <section id="user-info" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-3">Welcome, <span id="user-display-name">Guest</span>!</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-gray-400">Total Users:</p>
+                    <p class="text-2xl font-bold text-blue-400"><span id="total-users">0</span></p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Online Users:</p>
+                    <p class="text-2xl font-bold text-green-400"><span id="online-users">0</span></p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Total Earned:</p>
+                    <p class="text-2xl font-bold text-yellow-400"><span id="total-earned">0.00000000</span> USDT</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tasks" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-3">Available Tasks</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="task-card p-4 bg-gray-700 rounded-lg shadow">
+                    <h3 class="text-lg font-medium mb-2">PREMIUM ADS 1</h3>
+                    <p class="text-sm text-gray-400 mb-3">Watch for 20 seconds to earn.</p>
+                    <button class="start-ad-button px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full" data-ad-type="premium">Start Ad</button>
+                </div>
+                <div class="task-card p-4 bg-gray-700 rounded-lg shadow">
+                    <h3 class="text-lg font-medium mb-2">TURBO ADS 2</h3>
+                    <p class="text-sm text-gray-400 mb-3">Watch for 20 seconds to earn more.</p>
+                    <button class="start-ad-button px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full" data-ad-type="turbo">Start Ad</button>
+                </div>            </div>
+        </section>
+
+        <section id="referral" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-3">Referral Program</h2>
+            <p class="text-gray-400 mb-2">Earn 12% bonus on your referrals' earnings!</p>
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <div class="bg-gray-700 p-3 rounded-lg text-center flex-grow">
+                    Your Referral Code: <strong id="referral-code" class="text-lg text-yellow-400">----------</strong>
+                </div>
+                <div class="flex-shrink-0">
+                    <button id="copy-referral-button" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Copy Code</button>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p class="text-gray-400">Total Referrals:</p>
+                <p class="text-xl font-bold text-cyan-400"><span id="total-referrals">0</span></p>
+            </div>
+            <div class="mt-4">
+                <p class="text-gray-400">Total Earned from Referrals:</p>
+                <p class="text-xl font-bold text-pink-400"><span id="earned-from-referrals">0.00000000</span> USDT</p>
+            </div>
+        </section>
+
+        <section id="balance" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-3">Your Balance</h2>
+            <p class="text-gray-400">Current Balance:</p>
+            <p class="text-3xl font-bold text-green-500"><span id="user-balance">0.00000000</span> USDT</p>
+            <button id="withdraw-button" class="mt-4 px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:opacity-50" disabled>Withdraw to FaucetPay (Auto)</button>
+        </section>
+
+        <section id="settings" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-3">Settings</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="background-color" class="block mb-2">Background Color:</label>
+                    <input type="color" id="background-color" value="#1f2937" class="w-full h-10 p-1 border border-gray-600 rounded-lg">
+                </div>
+                <div>
+                    <label for="text-color" class="block mb-2">Text Color:</label>
+                    <input type="color" id="text-color" value="#d1d5db" class="w-full h-10 p-1 border border-gray-600 rounded-lg">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 py-4 px-6 text-center">
+        <p>&copy; <span id="current-year"></span> PAPERHOUSE CORPORATION. All rights reserved.</p>
+        <p class="text-sm text-gray-500"><span id="current-date-time"></span></p>
+    </footer>
+
+    <!-- Firebase Configuration -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <!-- Your App's JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
