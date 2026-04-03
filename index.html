@@ -4,152 +4,143 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAPERHOUSE CORPORATION</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> <!-- For custom styles -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Basic styling for ad display */
-        #ad-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none; /* Hidden by default */
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            color: white;
-            font-size: 1.5rem;
-            text-align: center;
-        }
-        #ad-frame {
-            width: 80%;
-            height: 80%;
-            border: none;
-        }
-        .countdown {
-            font-size: 2rem;
-            margin-top: 20px;
-        }
+        :root { --primary-color: #1e293b; --bg-color: #0f172a; }
+        body { background-color: var(--bg-color); color: white; transition: 0.3s; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        .hidden-section { display: none; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-300 font-sans">
+<body class="font-sans">
 
-    <div id="ad-container">
-        <div id="ad-content">
-            <div id="ad-frame-wrapper" style="position: relative;">
-                <iframe id="ad-frame" src="" frameborder="0" allow="autoplay"></iframe>
-                <div id="ad-overlay" class="absolute inset-0 bg-transparent cursor-pointer" onclick="handleAdClick()"></div>
-            </div>
-            <div id="ad-timer" class="countdown">20</div>
-            <button id="close-ad-button" class="mt-4 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700" onclick="closeAd()">Close Ad</button>
+    <!-- Login Overlay -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900">
+        <div class="glass p-8 rounded-2xl w-96 text-center">
+            <h1 class="text-3xl font-bold mb-6 text-blue-400">PAPERHOUSE CORP</h1>
+            <p class="mb-4 text-slate-400">Register/Login with FaucetPay Gmail</p>
+            <input type="email" id="login-email" placeholder="Gmail Address" class="w-full p-3 rounded bg-slate-800 border border-slate-700 mb-2 focus:outline-none focus:border-blue-500">
+            <input type="text" id="ref-input" placeholder="Referral Code (Optional)" class="w-full p-3 rounded bg-slate-800 border border-slate-700 mb-4 focus:outline-none focus:border-blue-500">
+            <button onclick="handleAuth()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-xl font-bold">ENTER DASHBOARD</button>
         </div>
     </div>
 
-    <header class="bg-gray-800 py-4 px-6 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-white">PAPERHOUSE CORPORATION</h1>
-            <nav id="main-nav">
-                <ul class="flex space-x-4">
-                    <li><a href="#tasks" class="hover:text-white">Tasks</a></li>
-                    <li><a href="#referral" class="hover:text-white">Referral</a></li>
-                    <li><a href="#balance" class="hover:text-white">Balance</a></li>
-                    <li><a href="#settings" class="hover:text-white">Settings</a></li>
-                    <li><button id="logout-button" class="text-red-500 hover:text-red-400">Logout</button></li>
-                </ul>
-            </nav>            <button id="login-button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login with FaucetPay</button>
-        </div>
-    </header>
+    <!-- Main App Container -->
+    <div id="main-app" class="hidden">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 glass z-40 transform -translate-x-full lg:translate-x-0">
+            <div class="p-6">
+                <h2 class="text-xl font-bold border-b border-slate-700 pb-4 mb-6">MENU</h2>
+                <nav class="space-y-4">
 
-    <main class="container mx-auto py-8 px-6">
-        <section id="user-info" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-3">Welcome, <span id="user-display-name">Guest</span>!</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <p class="text-gray-400">Total Users:</p>
-                    <p class="text-2xl font-bold text-blue-400"><span id="total-users">0</span></p>
+                    <button onclick="showSection('earn')" class="flex items-center space-x-3 w-full p-2 hover:bg-white/10 rounded"><i class="fas fa-coins text-yellow-400"></i> <span>Earn USDT</span></button>
+                    <button onclick="showSection('referral')" class="flex items-center space-x-3 w-full p-2 hover:bg-white/10 rounded"><i class="fas fa-users text-blue-400"></i> <span>Referrals</span></button>
+                    <button onclick="showSection('withdraw')" class="flex items-center space-x-3 w-full p-2 hover:bg-white/10 rounded"><i class="fas fa-history text-green-400"></i> <span>Withdrawals</span></button>
+                    <button onclick="showSection('settings')" class="flex items-center space-x-3 w-full p-2 hover:bg-white/10 rounded"><i class="fas fa-palette text-purple-400"></i> <span>Customize</span></button>
+                    <button onclick="logout()" class="flex items-center space-x-3 w-full p-2 hover:bg-red-500/20 text-red-400 rounded"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="lg:ml-64 p-6 min-h-screen">
+            <!-- Header Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="glass p-4 rounded-xl">
+                    <p class="text-slate-400 text-sm">Total Users</p>
+                    <h3 id="stat-total-users" class="text-2xl font-bold">0</h3>
                 </div>
-                <div>
-                    <p class="text-gray-400">Online Users:</p>
-                    <p class="text-2xl font-bold text-green-400"><span id="online-users">0</span></p>
+                <div class="glass p-4 rounded-xl">
+                    <p class="text-slate-400 text-sm">Online Now</p>
+                    <h3 id="stat-online" class="text-2xl font-bold text-green-400">0</h3>
                 </div>
-                <div>
-                    <p class="text-gray-400">Total Earned:</p>
-                    <p class="text-2xl font-bold text-yellow-400"><span id="total-earned">0.00000000</span> USDT</p>
+                <div class="glass p-4 rounded-xl">
+                    <p class="text-slate-400 text-sm">Your Balance</p>
+                    <h3 id="user-balance" class="text-2xl font-bold text-yellow-400">0.00000 USDT</h3>
                 </div>
             </div>
-        </section>
 
-        <section id="tasks" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-3">Available Tasks</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="task-card p-4 bg-gray-700 rounded-lg shadow">
-                    <h3 class="text-lg font-medium mb-2">PREMIUM ADS 1</h3>
-                    <p class="text-sm text-gray-400 mb-3">Watch for 20 seconds to earn.</p>
-                    <button class="start-ad-button px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 w-full" data-ad-type="premium">Start Ad</button>
+            <!-- Sections -->
+            <section id="earn-section" class="app-section">
+                <div class="glass p-8 rounded-2xl text-center">
+                    <h2 class="text-2xl font-bold mb-6">AD EARNING CENTER</h2>
+                    <div id="ad-timer-display" class="hidden mb-4 text-xl font-mono text-blue-400">Ads Progress: <span id="seconds">20</span>s</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <button onclick="startAdTask('premium')" class="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 rounded-2xl hover:scale-105 transition transform">
+                            <h4 class="font-bold text-xl">PREMIUM ADS 1</h4>
+                            <p class="text-sm opacity-80">Reward: 0.00014 USDT</p>
+                        </button>
+                        <button onclick="startAdTask('turbo')" class="bg-gradient-to-r from-purple-600 to-pink-700 p-6 rounded-2xl hover:scale-105 transition transform">
+                            <h4 class="font-bold text-xl">TURBO ADS 2</h4>
+                            <p class="text-sm opacity-80">Reward: 0.00014 USDT</p>
+                        </button>
+                    </div>
+                    <div id="claim-area" class="mt-8 hidden">
+                        <button onclick="claimReward()" class="bg-green-600 hover:bg-green-500 px-10 py-4 rounded-full font-bold animate-bounce">CLAIM REWARD</button>
+                    </div>
                 </div>
-                <div class="task-card p-4 bg-gray-700 rounded-lg shadow">
-                    <h3 class="text-lg font-medium mb-2">TURBO ADS 2</h3>
-                    <p class="text-sm text-gray-400 mb-3">Watch for 20 seconds to earn more.</p>
-                    <button class="start-ad-button px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 w-full" data-ad-type="turbo">Start Ad</button>
-                </div>            </div>
-        </section>
+            </section>
 
-        <section id="referral" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-3">Referral Program</h2>
-            <p class="text-gray-400 mb-2">Earn 12% bonus on your referrals' earnings!</p>
-            <div class="flex flex-col md:flex-row items-center gap-4">
-                <div class="bg-gray-700 p-3 rounded-lg text-center flex-grow">
-                    Your Referral Code: <strong id="referral-code" class="text-lg text-yellow-400">----------</strong>
+            <section id="referral-section" class="app-section hidden-section">
+                <div class="glass p-8 rounded-2xl">
+
+<h2 class="text-2xl font-bold mb-4 text-blue-400">Referral System (12% Bonus)</h2>
+                    <div class="bg-slate-800 p-4 rounded mb-4">
+                        <p class="text-sm text-slate-400">Your Referral Code:</p>
+                        <h3 id="my-ref-code" class="text-xl font-mono font-bold text-white">...</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-slate-800/50 p-4 rounded-xl">
+                            <p class="text-xs">Total Referrals</p>
+                            <p id="ref-count" class="text-lg font-bold">0</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-4 rounded-xl">
+                            <p class="text-xs">Referral Earnings</p>
+                            <p id="ref-earned" class="text-lg font-bold text-green-400">0.00 USDT</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex-shrink-0">
-                    <button id="copy-referral-button" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Copy Code</button>
+            </section>
+
+            <section id="withdraw-section" class="app-section hidden-section">
+                <div class="glass p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold mb-4">Recent Withdrawals</h2>
+                    <div id="withdrawal-list" class="space-y-2 overflow-y-auto max-h-64 text-sm">
+                        <!-- History injected here -->
+                    </div>
                 </div>
-            </div>
-            <div class="mt-4">
-                <p class="text-gray-400">Total Referrals:</p>
-                <p class="text-xl font-bold text-cyan-400"><span id="total-referrals">0</span></p>
-            </div>
-            <div class="mt-4">
-                <p class="text-gray-400">Total Earned from Referrals:</p>
-                <p class="text-xl font-bold text-pink-400"><span id="earned-from-referrals">0.00000000</span> USDT</p>
-            </div>
-        </section>
+            </section>
 
-        <section id="balance" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-3">Your Balance</h2>
-            <p class="text-gray-400">Current Balance:</p>
-            <p class="text-3xl font-bold text-green-500"><span id="user-balance">0.00000000</span> USDT</p>
-            <button id="withdraw-button" class="mt-4 px-6 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 disabled:opacity-50" disabled>Withdraw to FaucetPay (Auto)</button>
-        </section>
-
-        <section id="settings" class="mb-8 p-6 bg-gray-800 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-3">Settings</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="background-color" class="block mb-2">Background Color:</label>
-                    <input type="color" id="background-color" value="#1f2937" class="w-full h-10 p-1 border border-gray-600 rounded-lg">
+            <section id="settings-section" class="app-section hidden-section">
+                <div class="glass p-8 rounded-2xl">
+                    <h2 class="text-2xl font-bold mb-6">Display Settings</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block mb-2">Background Color</label>
+                            <input type="color" id="color-bg" onchange="updateTheme()" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                        <div>
+                            <label class="block mb-2">Accent Color</label>
+                            <input type="color" id="color-accent" onchange="updateTheme()" class="w-full h-10 rounded cursor-pointer">
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label for="text-color" class="block mb-2">Text Color:</label>
-                    <input type="color" id="text-color" value="#d1d5db" class="w-full h-10 p-1 border border-gray-600 rounded-lg">
-                </div>
-            </div>
-        </section>
-    </main>
+            </section>
+        </main>
 
-    <footer class="bg-gray-800 py-4 px-6 text-center">
-        <p>&copy; <span id="current-year"></span> PAPERHOUSE CORPORATION. All rights reserved.</p>
-        <p class="text-sm text-gray-500"><span id="current-date-time"></span></p>
-    </footer>
+        <footer class="lg:ml-64 p-4 text-center text-slate-500 text-xs border-t border-slate-800">
+            PAPERHOUSE CORPORATION &copy; <span id="current-date"></span> | <span id="current-time"></span>
+        </footer>
+    </div>
 
-    <!-- Firebase Configuration -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- Sounds -->
+    <audio id="success-sound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
 
-    <!-- Your App's JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
